@@ -70,6 +70,72 @@ public class MainActivity extends AppCompatActivity {
                 super.onProgressChanged(view, newProgress);
             }
 
+            @Override
+            public boolean onJsAlert(WebView view, String url, String message, final android.webkit.JsResult result) {
+                new android.app.AlertDialog.Builder(MainActivity.this)
+                    .setTitle("알림")
+                    .setMessage(message)
+                    .setPositiveButton(android.R.string.ok, new android.content.DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(android.content.DialogInterface dialog, int which) {
+                            result.confirm();
+                        }
+                    })
+                    .setCancelable(false)
+                    .create()
+                    .show();
+                return true;
+            }
+
+            @Override
+            public boolean onJsConfirm(WebView view, String url, String message, final android.webkit.JsResult result) {
+                new android.app.AlertDialog.Builder(MainActivity.this)
+                    .setTitle("확인")
+                    .setMessage(message)
+                    .setPositiveButton(android.R.string.ok, new android.content.DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(android.content.DialogInterface dialog, int which) {
+                            result.confirm();
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new android.content.DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(android.content.DialogInterface dialog, int which) {
+                            result.cancel();
+                        }
+                    })
+                    .setCancelable(false)
+                    .create()
+                    .show();
+                return true;
+            }
+
+            @Override
+            public boolean onJsPrompt(WebView view, String url, String message, String defaultValue, final android.webkit.JsPromptResult result) {
+                final android.widget.EditText input = new android.widget.EditText(MainActivity.this);
+                input.setText(defaultValue);
+                new android.app.AlertDialog.Builder(MainActivity.this)
+                    .setTitle("입력")
+                    .setMessage(message)
+                    .setView(input)
+                    .setPositiveButton(android.R.string.ok, new android.content.DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(android.content.DialogInterface dialog, int which) {
+                            result.confirm(input.getText().toString());
+                        }
+                    })
+                    .setNegativeButton(android.R.string.cancel, new android.content.DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(android.content.DialogInterface dialog, int which) {
+                            result.cancel();
+                        }
+                    })
+                    .setCancelable(false)
+                    .create()
+                    .show();
+                return true;
+            }
+
             // 구글 OAuth 등 window.open() 호출 시 팝업 다이얼로그 처리
             @Override
             public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
