@@ -111,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // 캐시 비우기: 앱 시작 시 캐시를 지워 갱신된 CSS/JS(캐시버스팅 포함)가 즉시 로드되도록 합니다.
+        myWebView.clearCache(true);
+
         // 배포 완료된 알파스냅 실시간 웹앱 URL 호출
         myWebView.loadUrl("https://ahtue.github.io/stock/");
     }
