@@ -1,7 +1,9 @@
 package com.alphasnap.app;
 
+import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Message;
 import android.view.View;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -34,6 +36,10 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setBuiltInZoomControls(true);
         webSettings.setDisplayZoomControls(false);
 
+        // 팝업창 및 다중 창 설정 (구글 OAuth 로그인창 연동을 위한 설정)
+        webSettings.setSupportMultipleWindows(true);
+        webSettings.setJavaScriptCanOpenWindowsAutomatically(true);
+
         // 구글 로그인 OAuth 통과를 위한 User-Agent 트윅
         // WebView 기본 UA의 "Version/4.0" 문자열을 제거하면 구글이 WebView가 아닌 일반 모바일 브라우저로 인식하여 로그인을 차단하지 않습니다.
         String defaultUserAgent = webSettings.getUserAgentString();
@@ -57,11 +63,51 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // 웹 크롬 클라이언트 설정 (자바스크립트 alert, 대화상자 등 제어)
+        // 웹 크롬 클라이언트 설정 (자바스크립트 alert, 다중 창 팝업 등 제어)
         myWebView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
                 super.onProgressChanged(view, newProgress);
+            }
+
+            // 구글 OAuth 등 window.open() 호출 시 팝업 다이얼로그 처리
+            @Override
+            public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, Message resultMsg) {
+                final Dialog dialog = new Dialog(MainActivity.this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                WebView popupWebView = new WebView(MainActivity.this);
+                popupWebView.getSettings().setJavaScriptEnabled(true);
+                popupWebView.getSettings().setSupportMultipleWindows(true);
+                popupWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+                popupWebView.getSettings().setDomStorageEnabled(true);
+
+                // 팝업 웹뷰에도 동일하게 User-Agent 트윅 적용 (구글 로그인 차단 해제)
+                String defaultUA = popupWebView.getSettings().getUserAgentString();
+                if (defaultUA != null) {
+                    popupWebView.getSettings().setUserAgentString(defaultUA.replace("Version/4.0 ", ""));
+                }
+
+                popupWebView.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                        return false;
+                    }
+                });
+
+                popupWebView.setWebChromeClient(new WebChromeClient() {
+                    @Override
+                    public void onCloseWindow(WebView window) {
+                        dialog.dismiss(); // 구글이 window.close() 호출 시 다이얼로그 닫기
+                        super.onCloseWindow(window);
+                    }
+                });
+
+                dialog.setContentView(popupWebView);
+                dialog.show();
+
+                WebView.WebViewTransport transport = (WebView.WebViewTransport) resultMsg.obj;
+                transport.setWebView(popupWebView);
+                resultMsg.sendToTarget();
+                return true;
             }
         });
 
