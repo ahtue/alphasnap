@@ -10,12 +10,15 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
     private WebView myWebView;
     private ProgressBar progressBar;
+    private long backPressedTime = 0;
+    private Toast backToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,7 +193,16 @@ public class MainActivity extends AppCompatActivity {
         if (myWebView.canGoBack()) {
             myWebView.goBack(); // 웹뷰 페이지 뒤로가기
         } else {
-            super.onBackPressed(); // 첫 페이지라면 앱 종료
+            if (System.currentTimeMillis() - backPressedTime < 2000) {
+                if (backToast != null) {
+                    backToast.cancel();
+                }
+                super.onBackPressed(); // 첫 페이지라면 앱 종료
+            } else {
+                backToast = Toast.makeText(this, "'뒤로' 버튼을 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT);
+                backToast.show();
+                backPressedTime = System.currentTimeMillis();
+            }
         }
     }
 }
