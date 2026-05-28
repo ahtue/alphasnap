@@ -193,16 +193,35 @@ public class MainActivity extends AppCompatActivity {
         if (myWebView.canGoBack()) {
             myWebView.goBack(); // 웹뷰 페이지 뒤로가기
         } else {
-            if (System.currentTimeMillis() - backPressedTime < 2000) {
-                if (backToast != null) {
-                    backToast.cancel();
-                }
-                super.onBackPressed(); // 첫 페이지라면 앱 종료
-            } else {
-                backToast = Toast.makeText(this, "'뒤로' 버튼을 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT);
-                backToast.show();
-                backPressedTime = System.currentTimeMillis();
-            }
+            showExitDialog();
         }
+    }
+
+    private void showExitDialog() {
+        android.app.AlertDialog dialog = new android.app.AlertDialog.Builder(this)
+            .setTitle("앱 종료")
+            .setMessage("종료하시겠습니까?")
+            .setPositiveButton("확인", new android.content.DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(android.content.DialogInterface dialogInterface, int which) {
+                    finish();
+                }
+            })
+            .setNegativeButton("취소", null)
+            .create();
+
+        dialog.setOnKeyListener(new android.content.DialogInterface.OnKeyListener() {
+            @Override
+            public boolean onKey(android.content.DialogInterface dialogInterface, int keyCode, android.view.KeyEvent event) {
+                if (keyCode == android.view.KeyEvent.KEYCODE_BACK && event.getAction() == android.view.KeyEvent.ACTION_UP) {
+                    dialogInterface.dismiss();
+                    finish();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        dialog.show();
     }
 }
